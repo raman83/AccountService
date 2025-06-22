@@ -1,14 +1,18 @@
 package com.account.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.account.dto.AccountRequest;
@@ -32,4 +36,14 @@ public class AccountController {
     public ResponseEntity<List<AccountResponse>> getByCustomer(@PathVariable("id") String id) {
         return ResponseEntity.ok(service.findByCustomerId(id));
     }
+    
+    @PostMapping("/accounts/{id}/debit")
+    public ResponseEntity<Void> debitAccount(
+            @PathVariable("id") String id,
+            @RequestParam("amount") BigDecimal amount) {
+        service.debitAccount(id, amount);
+        return ResponseEntity.ok().build();
+    }
+    
+    
 }
