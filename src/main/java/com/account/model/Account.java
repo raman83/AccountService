@@ -1,17 +1,10 @@
 package com.account.model;
 
+import jakarta.persistence.*;
+import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Data
@@ -19,15 +12,32 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class Account {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String customerId;
-    private String accountType;
+
+    @Enumerated(EnumType.STRING)
+    private AccountType accountType;
+
+    @Enumerated(EnumType.STRING)
+    private AccountSubType accountSubType;
+
     private BigDecimal balance;
     private String currency;
-    private String status; // ACTIVE, FROZEN, CLOSED
 
-    private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
+
+    private String nickname;
+    private String displayName;
+    private BigDecimal interestRate;
+
+    private String accountNumber;               // ✅ Stored but never exposed in full
+    private String institutionId;               // ✅ Used for FDX compliance
+
+    private LocalDateTime openDate;
+    private LocalDateTime lastUpdatedDateTime;
 }

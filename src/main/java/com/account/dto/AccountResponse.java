@@ -1,86 +1,32 @@
 package com.account.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
+import com.account.model.AccountStatus;
+import com.account.model.AccountSubType;
+import com.account.model.AccountType;
+import lombok.*;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class AccountResponse {
-
     private String id;
     private String customerId;
-    private String accountType;
+    private AccountType accountType;
+    private AccountSubType accountSubType;
     private BigDecimal balance;
     private String currency;
-    private String status;
+    private AccountStatus status;
 
-    public AccountResponse() {
-        // No-arg constructor for frameworks like Jackson
-    }
+    private String nickname;
+    private String displayName;
+    private BigDecimal interestRate;
 
-    public AccountResponse(String id, String customerId, String accountType, BigDecimal balance, String currency, String status) {
-        this.id = id;
-        this.customerId = customerId;
-        this.accountType = accountType;
-        this.balance = balance;
-        this.currency = currency;
-        this.status = status;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(String customerId) {
-        this.customerId = customerId;
-    }
-
-    public String getAccountType() {
-        return accountType;
-    }
-
-    public void setAccountType(String accountType) {
-        this.accountType = accountType;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    @Override
-    public String toString() {
-        return "AccountResponse{" +
-                "id='" + id + '\'' +
-                ", customerId='" + customerId + '\'' +
-                ", accountType='" + accountType + '\'' +
-                ", balance=" + balance +
-                ", currency='" + currency + '\'' +
-                ", status='" + status + '\'' +
-                '}';
-    }
+    private String maskedAccountNumber;          // ✅ Secure
+    private String institutionId;
+    private LocalDateTime openDate;
+    private LocalDateTime lastUpdatedDateTime;
 }

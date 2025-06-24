@@ -11,4 +11,8 @@ import com.account.dto.CustomerResponse;
 public interface CustomerServiceClient {
     @GetMapping("/api/v1/customers/external-id/{externalId}")
     ResponseEntity<CustomerResponse> getCustomerByExternalId(@PathVariable("externalId") String externalId);
+    
+    @GetMapping("/api/v1/customers/{externalId}/exists")
+    public boolean exists(@PathVariable("externalId") String externalId);
+
 }
