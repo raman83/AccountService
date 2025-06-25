@@ -4,6 +4,9 @@ import com.account.client.CustomerServiceClient;
 import com.account.dto.AccountBalanceResponse;
 import com.account.dto.AccountRequest;
 import com.account.dto.AccountResponse;
+import com.account.exception.AccountNotFoundException;
+import com.account.exception.CustomerNotFoundException;
+import com.account.exception.InsufficientFundsException;
 import com.account.mapper.AccountMapper;
 import com.account.model.Account;
 import com.account.model.AccountStatus;
@@ -31,7 +34,7 @@ public class AccountService {
     public AccountResponse create(AccountRequest request) {
         log.info(" Validating customer existence: {}", request.getCustomerId());
         if (!customerClient.exists(request.getCustomerId())) {
-            throw new IllegalArgumentException("Customer does not exist: " + request.getCustomerId());
+            throw new  CustomerNotFoundException(request.getCustomerId());
         }
 
         Account account = mapper.toEntity(request);
@@ -56,7 +59,7 @@ public class AccountService {
     @Transactional
     public void updateStatus(String accountId, AccountStatus newStatus) {
         Account acc = repo.findById(accountId)
-                          .orElseThrow(() -> new RuntimeException("Account not found"));
+                          .orElseThrow(() -> new AccountNotFoundException(accountId));
         acc.setStatus(newStatus);
         repo.save(acc);
     }
@@ -64,14 +67,14 @@ public class AccountService {
     @Transactional
     public void creditAccount(String accountId, BigDecimal amount) {
         Account acc = repo.findById(accountId)
-                          .orElseThrow(() -> new RuntimeException("Account not found"));
+                          .orElseThrow(() -> new AccountNotFoundException(accountId));
         acc.setBalance(acc.getBalance().add(amount));
         repo.save(acc);
     }
     
     public AccountBalanceResponse getBalanceInfo(String id) {
         Account acc = repo.findById(id)
-                          .orElseThrow(() -> new RuntimeException("Account not found"));
+                          .orElseThrow(() -> new AccountNotFoundException(id));
         return AccountBalanceResponse.builder()
                 .accountId(acc.getId())
                 .currency(acc.getCurrency())
@@ -88,7 +91,7 @@ public class AccountService {
     public AccountResponse findById(String id) {
         return repo.findById(id)
                    .map(mapper::toDto)
-                   .orElseThrow(() -> new RuntimeException("Account not found"));
+                   .orElseThrow(() -> new AccountNotFoundException(id));
     }
 
     public List<AccountResponse> findByCustomerId(String customerId) {
@@ -104,13 +107,13 @@ public class AccountService {
         Account account = repo.findById(accountId)
                 .orElseThrow(() -> {
                     log.error(" Account not found: {}", accountId);
-                    return new RuntimeException("Account not found");
+                    return new AccountNotFoundException(accountId);
                 });
 
         if (account.getBalance().compareTo(amount) < 0) {
             log.warn("Insufficient funds: accountId={}, balance={}, requested={}",
                      accountId, account.getBalance(), amount);
-            throw new RuntimeException("Insufficient funds");
+            throw new InsufficientFundsException();
         }
 
         BigDecimal oldBalance = account.getBalance();
