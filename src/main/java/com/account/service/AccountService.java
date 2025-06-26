@@ -57,7 +57,7 @@ public class AccountService {
     
     
     @Transactional
-    public void updateStatus(String accountId, AccountStatus newStatus) {
+    public void updateStatus(UUID accountId, AccountStatus newStatus) {
         Account acc = repo.findById(accountId)
                           .orElseThrow(() -> new AccountNotFoundException(accountId));
         acc.setStatus(newStatus);
@@ -65,14 +65,14 @@ public class AccountService {
     }
     
     @Transactional
-    public void creditAccount(String accountId, BigDecimal amount) {
+    public void creditAccount(UUID accountId, BigDecimal amount) {
         Account acc = repo.findById(accountId)
                           .orElseThrow(() -> new AccountNotFoundException(accountId));
         acc.setBalance(acc.getBalance().add(amount));
         repo.save(acc);
     }
     
-    public AccountBalanceResponse getBalanceInfo(String id) {
+    public AccountBalanceResponse getBalanceInfo(UUID id) {
         Account acc = repo.findById(id)
                           .orElseThrow(() -> new AccountNotFoundException(id));
         return AccountBalanceResponse.builder()
@@ -88,7 +88,7 @@ public class AccountService {
         return repo.findAll().stream().map(mapper::toDto).toList();
     }
     
-    public AccountResponse findById(String id) {
+    public AccountResponse findById(UUID id) {
         return repo.findById(id)
                    .map(mapper::toDto)
                    .orElseThrow(() -> new AccountNotFoundException(id));
@@ -103,7 +103,7 @@ public class AccountService {
     }
 
     @Transactional
-    public void debitAccount(String accountId, BigDecimal amount) {
+    public void debitAccount(UUID accountId, BigDecimal amount) {
         Account account = repo.findById(accountId)
                 .orElseThrow(() -> {
                     log.error(" Account not found: {}", accountId);
@@ -137,5 +137,12 @@ public class AccountService {
 
     private String generateAccountNumber() {
         return "CAN" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+    }
+    
+    
+    public String getCustomerIdForAccount(UUID accountId) {
+        Account account = repo.findById(accountId)
+            .orElseThrow(() -> new AccountNotFoundException(accountId));
+        return account.getCustomerId();
     }
 }

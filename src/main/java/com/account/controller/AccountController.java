@@ -1,6 +1,7 @@
 package com.account.controller;
 
 import com.account.dto.AccountBalanceResponse;
+import com.account.dto.AccountOwnerResponse;
 import com.account.dto.AccountRequest;
 import com.account.dto.AccountResponse;
 import com.account.model.AccountStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -31,14 +33,14 @@ public class AccountController {
     }
     
     @GetMapping("/accounts/{id}")
-    @PreAuthorize("hasAuthority('fdx:accounts.read')")
+    @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.read')")
 
-    public ResponseEntity<AccountResponse> getById(@PathVariable("id") String id) {
+    public ResponseEntity<AccountResponse> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @GetMapping("/customers/{id}/accounts")
-    @PreAuthorize("hasAuthority('fdx:accounts.read')")
+    @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.read')")
 
     public ResponseEntity<List<AccountResponse>> getByCustomer(@PathVariable("id") String id) {
         log.info("Fetching accounts for customer: {}", id);
@@ -47,7 +49,7 @@ public class AccountController {
     
 
     @GetMapping("/accounts")
-    @PreAuthorize("hasAuthority('fdx:accounts.read')")
+    @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.read')")
 
     public ResponseEntity<List<AccountResponse>> getAllAccounts() {
         return ResponseEntity.ok(service.getAllAccounts());
@@ -55,34 +57,34 @@ public class AccountController {
     
     
     @GetMapping("/accounts/{id}/balances")
-    @PreAuthorize("hasAuthority('fdx:accounts.read')")
+    @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.read')")
 
-    public ResponseEntity<AccountBalanceResponse> getBalances(@PathVariable("id") String id) {
+    public ResponseEntity<AccountBalanceResponse> getBalances(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(service.getBalanceInfo(id));
     }
     
     
     @PostMapping("/accounts/{id}/credit")
-    @PreAuthorize("hasAuthority('fdx:accounts.write')")
+    @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.write')")
     public ResponseEntity<Void> creditAccount(
-            @PathVariable("id") String id,
+            @PathVariable("id") UUID id,
             @RequestParam("amount") BigDecimal amount) {
         service.creditAccount(id, amount);
         return ResponseEntity.ok().build();
     }
     
     @PatchMapping("/accounts/{id}/status")
-    @PreAuthorize("hasAuthority('fdx:accounts.write')")
+    @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.write')")
     public ResponseEntity<Void> updateStatus(
-            @PathVariable("id") String id,
+            @PathVariable("id") UUID id,
             @RequestParam("status") AccountStatus status) {
         service.updateStatus(id, status);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/accounts/{id}/debit")
-    @PreAuthorize("hasAuthority('fdx:accounts.write')")
-    public ResponseEntity<Void> debitAccount(@PathVariable("id") String id,
+    @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.write')")
+    public ResponseEntity<Void> debitAccount(@PathVariable("id") UUID id,
                                              @RequestParam("amount") BigDecimal amount) {
         log.info(" Debit request: accountId={}, amount={}", id, amount);
         service.debitAccount(id, amount);
@@ -91,10 +93,20 @@ public class AccountController {
     
     
     @GetMapping("/accounts/search")
-    @PreAuthorize("hasAuthority('fdx:accounts.read')")
+    @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.read')")
     public ResponseEntity<List<AccountResponse>> searchAccounts(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String currency) {
         return ResponseEntity.ok(service.searchAccounts(status, currency));
     }
+    
+    
+
+    @GetMapping("/accounts/{accountId}/owner")
+    @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.read')")
+    public ResponseEntity<AccountOwnerResponse> getAccountOwner(@PathVariable("accountId") UUID accountId) {
+        String customerId = service.getCustomerIdForAccount(accountId);
+        return ResponseEntity.ok(new AccountOwnerResponse(accountId, customerId));
+    }
 }
+
