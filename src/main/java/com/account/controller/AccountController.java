@@ -102,11 +102,11 @@ public class AccountController {
     
     
 
-    @GetMapping("/accounts/{accountId}/owner")
-    @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.read')")
-    public ResponseEntity<AccountOwnerResponse> getAccountOwner(@PathVariable("accountId") UUID accountId) {
-        String customerId = service.getCustomerIdForAccount(accountId);
-        return ResponseEntity.ok(new AccountOwnerResponse(accountId, customerId));
+    @GetMapping("/accounts/{id}/owner")
+  //  @PreAuthorize("hasAuthority('SCOPE_fdx:accounts.read')")
+    public AccountOwnerResponse getAccountOwner(@PathVariable("id") UUID id) {
+        String customerId = service.getCustomerIdForAccount(id);
+        return new AccountOwnerResponse(id, customerId);
     }
 }
 

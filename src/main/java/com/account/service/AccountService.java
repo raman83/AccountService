@@ -4,13 +4,12 @@ import com.account.client.CustomerServiceClient;
 import com.account.dto.AccountBalanceResponse;
 import com.account.dto.AccountRequest;
 import com.account.dto.AccountResponse;
-import com.account.exception.AccountNotFoundException;
-import com.account.exception.CustomerNotFoundException;
-import com.account.exception.InsufficientFundsException;
 import com.account.mapper.AccountMapper;
 import com.account.model.Account;
 import com.account.model.AccountStatus;
 import com.account.repository.AccountRepository;
+import com.commons.exception.*;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,7 +75,7 @@ public class AccountService {
         Account acc = repo.findById(id)
                           .orElseThrow(() -> new AccountNotFoundException(id));
         return AccountBalanceResponse.builder()
-                .accountId(acc.getId())
+                .id(acc.getId())
                 .currency(acc.getCurrency())
                 .availableBalance(acc.getBalance())
                 .ledgerBalance(acc.getBalance()) // update if ledger differs

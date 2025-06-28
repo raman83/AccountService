@@ -11,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AccountBalanceResponse {
-    private UUID accountId;
+    private UUID id;
     private BigDecimal availableBalance;
     private BigDecimal ledgerBalance;
     private String currency;

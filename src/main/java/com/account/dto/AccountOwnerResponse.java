@@ -10,6 +10,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountOwnerResponse {
-    private UUID accountId;
+    private UUID id;
     private String customerId;
 }
