@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.account.dto.CustomerResponse;
 
-@FeignClient(name = "customer-service", url = "http://localhost:8083")
+@FeignClient(name = "customer-service", url = "${customer.service.url}")
+
+
 public interface CustomerServiceClient {
     @GetMapping("/api/v1/customers/external-id/{externalId}")
     ResponseEntity<CustomerResponse> getCustomerByExternalId(@PathVariable("externalId") String externalId);
