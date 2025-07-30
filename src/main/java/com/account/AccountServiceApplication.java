@@ -9,7 +9,7 @@ import com.commons.security.DefaultSecurityConfig;
 import com.commons.security.FeignTokenRelayConfig;
 
 @Import({DefaultSecurityConfig.class, FeignTokenRelayConfig.class})
-@SpringBootApplication(scanBasePackages = {"com.account", "com.account.mapper"})
+@SpringBootApplication(scanBasePackages = {"com.account", "com.account.mapper", "com.commons"})
 @EnableFeignClients(basePackages = "com.account.client") 
 public class AccountServiceApplication {
 
