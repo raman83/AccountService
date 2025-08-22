@@ -14,20 +14,30 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class AccountResponse {
-    private UUID id;
-    private String customerId;
-    private AccountType accountType;
-    private AccountSubType accountSubType;
-    private BigDecimal balance;
-    private String currency;
-    private AccountStatus status;
+	 private UUID id;
+	    private String customerId;
 
-    private String nickname;
-    private String displayName;
-    private BigDecimal interestRate;
+	    private AccountType accountType;
+	    private AccountSubType accountSubType;
 
-    private String maskedAccountNumber;          // ✅ Secure
-    private String institutionId;
-    private LocalDateTime openDate;
-    private LocalDateTime lastUpdatedDateTime;
+	    /** explicit naming */
+	    private BigDecimal ledgerBalance;
+	    private BigDecimal availableBalance;
+
+	    private String currency;
+	    private AccountStatus status;
+
+	    private String nickname;
+	    private String displayName;
+	    private BigDecimal interestRate;
+
+	    private String institutionId;
+
+	    /** masked */
+	    private String maskedAccountNumber;
+
+	    private LocalDateTime openDate;
+	    private LocalDateTime lastUpdatedDateTime;
+
+	    private Integer version;
 }
