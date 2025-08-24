@@ -18,7 +18,10 @@ public class AccountRequest {
     private String customerId;
     private AccountType accountType;
     private AccountSubType accountSubType;
-    private BigDecimal balance;
+    private BigDecimal ledgerBalance;
+    private BigDecimal availableBalance;
+;
+
     private String currency;
     private AccountStatus status;
     private String nickname;

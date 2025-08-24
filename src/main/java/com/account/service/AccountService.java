@@ -110,8 +110,8 @@ public class AccountService {
         account.setAccountNumber(generateAccountNumber());
         account.setInstitutionId("CANADA001"); // Static for now; dynamic later
         account.setRequestFingerprint(fp);
-        if (account.getLedgerBalance() == null) account.setLedgerBalance(new BigDecimal("0.00"));
-        if (account.getAvailableBalance() == null) account.setAvailableBalance(account.getLedgerBalance());
+     //   if (account.getLedgerBalance() == null) account.setLedgerBalance(new BigDecimal("0.00"));
+      //  if (account.getAvailableBalance() == null) account.setAvailableBalance(account.getLedgerBalance());
         Account saved = repo.save(account);
         log.info("Account created: id={}, customerId={}", saved.getId(), saved.getCustomerId());
         return mapper.toDto(saved);
@@ -203,7 +203,7 @@ public class AccountService {
 
     private LedgerEntryResponse post(UUID accountId, AccountLedgerEntry.LedgerSide side, PostingRequest req,
                                      String idempotencyKey, Integer expectedVersion) {
-        Account acc = repo.findById(accountId).orElseThrow(() -> new AccountNotFoundException(accountId));
+    	Account acc = repo.findById(accountId).orElseThrow(() -> new AccountNotFoundException(accountId));
         if (expectedVersion != null && !expectedVersion.equals(acc.getVersion())) {
             throw new VersionMismatchException("If-Match version mismatch");
         }
@@ -214,18 +214,18 @@ public class AccountService {
                 ? idempotencyKey.trim()
                 : Fingerprints.posting(accountId.toString(), side.name(), amt.toPlainString(), currency, req.getDescription());
 
+        // Idempotent replay for the posting itself
         Optional<AccountLedgerEntry> dup = ledgerRepo.findByAccountIdAndRequestFingerprint(accountId, fp);
         if (dup.isPresent()) {
             log.info("Idempotent replay for posting fp={}", fp);
             return toLedgerResponse(dup.get());
         }
 
-        // Ledger math
+        // -------- Ledger math (unchanged) --------
         BigDecimal newLedger = acc.getLedgerBalance();
         if (side == AccountLedgerEntry.LedgerSide.CREDIT) {
             newLedger = newLedger.add(amt);
         } else {
-            // On debit, ensure available (ledger − holds) >= amount
             BigDecimal activeHolds = holdRepo.sumByAccountAndStatus(accountId, HoldStatus.ACTIVE);
             BigDecimal available = newLedger.subtract(activeHolds == null ? BigDecimal.ZERO : activeHolds);
             if (available.compareTo(amt) < 0) {
@@ -237,7 +237,7 @@ public class AccountService {
         acc.setLedgerBalance(newLedger);
         BigDecimal activeHolds = holdRepo.sumByAccountAndStatus(accountId, HoldStatus.ACTIVE);
         acc.setAvailableBalance(newLedger.subtract(activeHolds == null ? BigDecimal.ZERO : activeHolds));
-        repo.save(acc); // will bump @Version
+        repo.save(acc); // bumps @Version
 
         AccountLedgerEntry entry = AccountLedgerEntry.builder()
                 .account(acc)
@@ -248,6 +248,35 @@ public class AccountService {
                 .requestFingerprint(fp)
                 .build();
         entry = ledgerRepo.save(entry);
+
+        // -------- NEW: auto-hold for EXTERNAL credits (or when explicitly requested) --------
+        boolean isExternal = req.getSource() != null && "EXTERNAL".equalsIgnoreCase(req.getSource());
+        boolean shouldHold = Boolean.TRUE.equals(req.getCreateHold()) || (req.getCreateHold() == null && isExternal);
+
+        if (side == AccountLedgerEntry.LedgerSide.CREDIT && shouldHold) {
+            // Derive a stable fingerprint for the hold from posting fp
+            String holdFp = fp + "|H";
+            Optional<AccountHold> existingHold = holdRepo.findByAccountAndFingerprint(accountId, holdFp);
+            if (existingHold.isEmpty()) {
+                AccountHold hold = AccountHold.builder()
+                        .account(acc)
+                        .amount(amt)
+                        .currency(currency)
+                        .type(parseHoldType(req.getHoldType())) // falls back to OTHER if null/invalid
+                        .reason(req.getHoldReason() != null ? req.getHoldReason() : "External credit hold")
+                        .requestFingerprint(holdFp)
+                        .build();
+                if (req.getHoldDays() != null && req.getHoldDays() > 0) {
+                    hold.setReleaseAt(LocalDateTime.now().plusDays(req.getHoldDays()));
+                }
+                holdRepo.save(hold);
+
+                // after adding the hold, recompute available = ledger − active holds
+                BigDecimal activeHolds2 = holdRepo.sumByAccountAndStatus(accountId, HoldStatus.ACTIVE);
+                acc.setAvailableBalance(acc.getLedgerBalance().subtract(activeHolds2 == null ? BigDecimal.ZERO : activeHolds2));
+                repo.save(acc);
+            }
+        }
 
         return toLedgerResponse(entry);
     }
